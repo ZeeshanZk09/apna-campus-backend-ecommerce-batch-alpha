@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+// mongodb+srv://mzeeshankhan0988:1aDHnWgGDdRbVsxe@e-commerce-app.ll3iuhq.mongodb.net/
 const connectDB = () => {
   try {
     mongoose.connect(process.env?.MONGODB_URI ?? 'mongodb://localhost:27017');
