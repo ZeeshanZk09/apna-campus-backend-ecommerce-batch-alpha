@@ -1,3 +1,3 @@
 const PORT = process.env.PORT || 3000;
-
-export { PORT };
+const API_ROUTE = '/api/v1';
+export { PORT, API_ROUTE };
