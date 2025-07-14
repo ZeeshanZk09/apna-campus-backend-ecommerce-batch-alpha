@@ -1,11 +1,11 @@
 import { app } from './app.js';
 import connectDB from './db/connect.js';
-import PORT from './constants.js';
+import { PORT } from './constants.js';
 
-connectDB()
+connectDB() // PROMISE => resolve, reject
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port http://localhost:${PORT}`);
     });
   })
   .catch((error) => {

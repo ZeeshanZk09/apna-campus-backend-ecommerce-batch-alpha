@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "backend": "nodemon --watch src --exec babel-node src/index.js"
+    "backend": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "mongoose": "^8.16.1",
     "nodemon": "^3.1.10"

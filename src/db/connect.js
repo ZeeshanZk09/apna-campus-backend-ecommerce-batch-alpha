@@ -1,8 +1,22 @@
 import mongoose from 'mongoose';
-// mongodb+srv://mzeeshankhan0988:1aDHnWgGDdRbVsxe@e-commerce-app.ll3iuhq.mongodb.net/
-const connectDB = () => {
+import { DB_NAME, MONGODB_URI } from '../constants.js';
+// promises
+// callback
+// async await
+const connectDB = async () => {
   try {
-    mongoose.connect(process.env?.MONGODB_URI ?? 'mongodb://localhost:27017');
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
+
+    // Check if connection string is valid
+    if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
+      throw new Error('Invalid MongoDB connection string format');
+    }
+
+    const connectionInstance = await mongoose.connect(`${MONGODB_URI}/${DB_NAME}`);
+    console.log(`MongoDB connected`, connectionInstance.connection.host);
+    return connectionInstance;
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
     process.exit(1); // Exit the process with failure
