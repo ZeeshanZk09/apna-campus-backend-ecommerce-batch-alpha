@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { userRegister } from '../controllers/user.controller.js';
+import { userRegister, userLogin } from '../controllers/user.controller.js';
 
 const userRouter = Router();
 
-userRouter.route('/').get((req, res, next) => {
-  res.send('users');
-});
 userRouter.route('/register').post(userRegister);
-
+// http://localhost:3000/api/v1/users/register
+userRouter.route('/login').post(userLogin);
+// http://localhost:3000/api/v1/users/login Method: POST
 export default userRouter;

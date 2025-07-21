@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 // schema modeling | data modeling
+// mongodb > client > database > collection > document
 const userSchema = new Schema({
   username: {
     type: String,
@@ -19,5 +20,5 @@ const userSchema = new Schema({
     required: true,
   },
 });
-
+// users
 export const User = mongoose.model('User', userSchema);
