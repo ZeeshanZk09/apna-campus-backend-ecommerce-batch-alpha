@@ -5,9 +5,9 @@ import { DB_NAME, MONGODB_URI } from '../constants.js';
 // async await
 const connectDB = async () => {
   try {
-    if (!MONGODB_URI) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
-    }
+    // if (!MONGODB_URI) {
+    //   throw new Error('MONGODB_URI is not defined in environment variables');
+    // }
 
     // Check if connection string is valid
     if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
