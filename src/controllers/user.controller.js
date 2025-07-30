@@ -20,13 +20,14 @@ const userRegister = requestHandler(async (req, res, next, err) => {
     throw new ApiError(400, 'User already exists');
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const encodedPassword = await bcrypt.hash(password, salt);
+  // const salt = await bcrypt.genSalt(10);
+  // const encodedPassword = await bcrypt.hash(password, salt);
 
   const user = await User.create({
     username,
     email,
-    password: encodedPassword,
+    password,
+    // password: encodedPassword,
   });
 
   if (!user) {
@@ -51,7 +52,8 @@ const userLogin = requestHandler(async (req, res, next, err) => {
   });
 
   // check the password if valid or not
-  const comparePassword = await bcrypt.compare(password, user.password);
+  const comparePassword = await user.comparePassword(password);
+  // const comparePassword = await bcrypt.compare(password, user.password);
   if (!comparePassword) {
     throw new ApiError(401, 'Please enter a valid password.');
   }
