@@ -1,0 +1,21 @@
+config;
+
+user => register (model, route, controller);
+user => login (route, controller);
+
+authentication:
+session data => cookie; cookie && cookie.token ? "decode the token" ? User.findById(decodedToken._id) : "User is not authenticated";
+
+authorization:
+function authorization(){
+
+if(session data => cookie && cookie.token ){
+  decodedToken = jwt.verify(cookie.token, ACCESS_TOKEN_SECRET);
+  const user = User.findById(decodedToken._id);
+  if(!user.isAdmin){
+    return res.json("User is not authorized"); // end the function
+  }
+  return user;
+}
+
+}
