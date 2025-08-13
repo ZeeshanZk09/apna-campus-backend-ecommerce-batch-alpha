@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../constants.js';
 // schema modeling | data modeling
 // mongodb > client > database > collection > document
 const userSchema = new Schema(
@@ -20,6 +21,9 @@ const userSchema = new Schema(
       type: String,
       minlength: 8,
       required: true,
+    },
+    refreshToken: {
+      type: String,
     },
     isAdmin: {
       type: Boolean,
@@ -42,4 +46,15 @@ userSchema.methods.comparePassword = async function (password) {
   return comparePassword;
 };
 
+userSchema.methods.generateAccessToken = async function () {
+  return jwt.sign({ id: this._id, isAdmin: this.isAdmin }, ACCESS_TOKEN_SECRET, {
+    expiresIn: '1h',
+  });
+};
+
+userSchema.methods.generateRefreshToken = async function () {
+  return jwt.sign({ id: this._id }, REFRESH_TOKEN_SECRET, {
+    expiresIn: '30d',
+  });
+};
 export const User = mongoose.model('User', userSchema);
