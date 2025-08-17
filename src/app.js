@@ -9,7 +9,7 @@ app.use(cookieParser());
 
 import userRouter from './routes/user.route.js';
 
-app.use(`${API_ROUTE}/users`, userRouter);
+app.use(`${API_ROUTE}/user`, userRouter);
 app.get('/', (req, res, next) => {
   res.send('Welcome to backend');
 });

@@ -4,8 +4,10 @@ import { ApiError } from '../utilities/ApiError.js';
 import requestHandler from '../utilities/requestHandler.js';
 import jwt from 'jsonwebtoken';
 
-const authMiddleware = requestHandler(async (req, _, next) => {
-  const token = req.cookies?.accessToken || req.headers('Authorization')?.replace('Bearer ', '');
+// let user;
+
+const authUser = requestHandler(async (req, _, next) => {
+  const token = req.cookies?.accessToken || req?.headers('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
     // console.log('Access token is required');
@@ -19,7 +21,9 @@ const authMiddleware = requestHandler(async (req, _, next) => {
     throw new ApiError(401, 'Invalid access token');
   }
 
-  const user = User.findById(decodedToken.id).select('-password -refreshToken');
+  let user = await User.findById(decodedToken._id).select('-password -refreshToken');
+
+  console.log('user in authUser', user);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -28,4 +32,15 @@ const authMiddleware = requestHandler(async (req, _, next) => {
   next();
 });
 
-export default authMiddleware;
+const authAdmin = requestHandler(async (req, _, next) => {
+  const user = await req.user;
+
+  console.log('user in authAdmin', user);
+  if (!user?.isAdmin) {
+    throw new ApiError(403, 'Access denied. Admins only');
+  }
+
+  next();
+});
+
+export { authUser, authAdmin };

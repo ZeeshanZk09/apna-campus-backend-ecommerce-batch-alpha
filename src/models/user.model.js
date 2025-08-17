@@ -1,6 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../constants.js';
+import jwt from 'jsonwebtoken';
+
 // schema modeling | data modeling
 // mongodb > client > database > collection > document
 const userSchema = new Schema(
@@ -36,9 +38,14 @@ const userSchema = new Schema(
 );
 
 userSchema.pre('save', async function (next) {
-  if (!this.Modified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+  try {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+  } catch (error) {
+    console.log(error);
+    throw new Error('Error while hashing password');
+  }
 });
 
 userSchema.methods.comparePassword = async function (password) {
@@ -47,7 +54,7 @@ userSchema.methods.comparePassword = async function (password) {
 };
 
 userSchema.methods.generateAccessToken = async function () {
-  return jwt.sign({ id: this._id, isAdmin: this.isAdmin }, ACCESS_TOKEN_SECRET, {
+  return jwt.sign({ _id: this._id, isAdmin: this.isAdmin }, ACCESS_TOKEN_SECRET, {
     expiresIn: '1h',
   });
 };

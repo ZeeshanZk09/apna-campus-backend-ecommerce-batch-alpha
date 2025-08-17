@@ -1,8 +1,13 @@
 import mongoose from 'mongoose';
-import { User } from '../models/user.model';
+import { User } from '../models/user.model.js';
+import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from '../constants.js';
 
 export default async function generateToken(userId) {
   try {
+    if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+      throw new Error('Access or Refresh token secret is not defined');
+    }
+
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error('Invalid user ID');
     }
