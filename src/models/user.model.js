@@ -7,16 +7,25 @@ import jwt from 'jsonwebtoken';
 // mongodb > client > database > collection > document
 const userSchema = new Schema(
   {
+    firstName: {
+      type: String,
+      trim: true,
+      default: 'Anonymous',
+    },
+    lastName: {
+      type: String,
+      trim: true,
+    },
     username: {
       type: String,
       required: true,
-      unique: true,
+      unique: [true, 'username already exists.'],
       trim: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: [true, 'Email already exists.'],
       trim: true,
     },
     password: {
@@ -36,6 +45,10 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+userSchema.virtual('fullName').get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 userSchema.pre('save', async function (next) {
   try {

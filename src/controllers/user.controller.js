@@ -9,9 +9,9 @@ import mongoose from 'mongoose';
 
 const userRegister = requestHandler(async (req, res, next, err) => {
   try {
-    const { username, email, password } = req.body;
-    console.log(username, email, password);
-    if (!username || !email || !password) {
+    const { firstName, lastName, username, email, password } = req.body;
+    // console.log(username, email, password);
+    if (!firstName || !lastName || !username || !email || !password) {
       return next(new ApiError(400, 'All fields are required.'));
     }
 
@@ -28,6 +28,8 @@ const userRegister = requestHandler(async (req, res, next, err) => {
     // const encodedPassword = await bcrypt.hash(password, salt);
 
     let user = await User.create({
+      firstName,
+      lastName,
       username,
       email,
       password,
@@ -60,7 +62,22 @@ const userRegister = requestHandler(async (req, res, next, err) => {
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       })
-      .json(new ApiResponse(201, createdUser, 'User created successfully'));
+      .json(
+        new ApiResponse(
+          201,
+          {
+            id: createdUser._id,
+            firstName: createdUser.firstName,
+            lastName: createdUser.lastName,
+            username: createdUser.username,
+            email: createdUser.email,
+            isAdmin: createdUser.isAdmin,
+            createdAt: createdUser.createdAt,
+            updatedAt: createdUser.updatedAt,
+          },
+          'User created successfully'
+        )
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       return next(error.message ? new ApiError(error.statusCode, error.message) : error);
@@ -123,7 +140,22 @@ const userLogin = requestHandler(async (req, res, next, err) => {
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       })
-      .json(new ApiResponse(200, loggedInUser, 'User logged In successfully'));
+      .json(
+        new ApiResponse(
+          200,
+          {
+            id: loggedInUser._id,
+            firstName: loggedInUser.firstName,
+            lastName: loggedInUser.lastName,
+            username: loggedInUser.username,
+            email: loggedInUser.email,
+            isAdmin: loggedInUser.isAdmin,
+            createdAt: loggedInUser.createdAt,
+            updatedAt: loggedInUser.updatedAt,
+          },
+          'User logged In successfully'
+        )
+      );
   } catch (error) {
     if (error instanceof ApiError) {
       return next(error.message ? new ApiError(error.statusCode, error.message) : error);
@@ -166,7 +198,22 @@ const userCurrent = requestHandler(async (req, res, next) => {
       return next(new ApiError(404, 'User not found'));
     }
 
-    return res.status(200).json(new ApiResponse(200, user, 'Current user fetched successfully'));
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.username,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+        'Current user fetched successfully'
+      )
+    );
   } catch (error) {
     if (error instanceof ApiError) {
       return next(error.message ? new ApiError(error.statusCode, error.message) : error);
@@ -178,40 +225,114 @@ const userCurrent = requestHandler(async (req, res, next) => {
 
 const updateUserProfile = requestHandler(async (req, res, next) => {
   try {
-    const user = await req.user;
+    const user = await req?.user;
 
     if (!user) {
       return next(new ApiError(404, 'User not found'));
     }
 
-    const { username = '', email = '', password = '' } = req.body;
+    const { firstName = '', lastName = '', username = '', email = '' } = req.body;
 
-    if (username) user.username = username || user.username;
-    if (email) user.email = email || user.email;
-    if (password) user.password = password || user.password;
+    // const userAlreadyExists = await User.findOne({
+    //   $or: [{ email }, { username }],
+    // });
 
-    const updatedUser = await user.save();
+    // if (userAlreadyExists) {
+    //   throw new ApiError(401, 'email or username already exists.');
+    // }
 
-    if (!updatedUser) {
-      return next(new ApiError(500, 'Error updating user profile'));
+    try {
+      const userToUpdate = await User.findByIdAndUpdate(
+        user._id,
+        {
+          firstName,
+          lastName,
+          username,
+          email,
+        },
+        { updatedAt: Date.now() }
+      );
+
+      console.log('user from updated user', user);
+
+      await userToUpdate.save();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ApiError(error.statusCode, error.message);
+      }
+      throw new Error(error);
     }
+
+    // if (firstName) userToUpdate.firstName = firstName || userToUpdate.firstName;
+    // if (lastName) userToUpdate.lastName = lastName || userToUpdate.lastName;
+    // if (username) userToUpdate.username = username || userToUpdate.username;
+    // if (email) userToUpdate.email = email || userToUpdate.email;
+    // if (password) user.password = password || user.password;
 
     return res.status(200).json(
       new ApiResponse(
         200,
         {
-          ...updatedUser.toObject(),
-          password: undefined,
+          id: updatedUser._id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          isAdmin: updatedUser.isAdmin,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
         },
         'User profile updated successfully'
       )
     );
   } catch (error) {
     if (error instanceof ApiError) {
+      throw new ApiError(
+        error.statusCode,
+        error?.message.replace('MongooseError:', '').trim() || 'Internal server error'
+      );
+    }
+
+    // Handle duplicate email error
+    if (error.code === 11000) {
+      throw new ApiError(409, 'Email address is already in use');
+    }
+
+    console.error(
+      'Error updating user profile:',
+      error?.message.replace('MongooseError:', '').trim() || 'Internal server error'
+    );
+    return res
+      .status(400)
+      .json(new ApiError(400, error?.message.replace('MongooseError:', '').trim()));
+  }
+});
+
+const deleteUser = requestHandler(async (req, res, next) => {
+  try {
+    const userId = await req?.user?._id;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(400, 'User ID is required');
+    }
+
+    try {
+      await User.findByIdAndDelete(userId);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.message) {
+          throw new ApiError(error.statusCode, error.message);
+        }
+      }
+      throw new ApiError(500, 'Error deleting user');
+    }
+
+    return res.status(200).json(new ApiResponse(200, null, 'User deleted successfully'));
+  } catch (error) {
+    if (error instanceof ApiError) {
       return next(error.message ? new ApiError(error.statusCode, error.message) : error);
     }
-    console.error('Error updating user profile:', error);
-    return next(new ApiError(500, 'Internal Server Error while updating user profile'));
+    console.error('Error deleting user:', error);
+    return next(new ApiError(500, 'Internal Server Error while deleting user'));
   }
 });
 
@@ -309,4 +430,12 @@ const getAllUsers = requestHandler(async (req, res, next) => {
 
 //
 
-export { userRegister, userLogin, userLogOut, userCurrent, getAllUsers, updateUserProfile };
+export {
+  userRegister,
+  userLogin,
+  userLogOut,
+  userCurrent,
+  getAllUsers,
+  updateUserProfile,
+  deleteUser,
+};

@@ -5,6 +5,7 @@ import {
   userLogOut,
   userCurrent,
   updateUserProfile,
+  deleteUser,
   getAllUsers,
 } from '../controllers/user.controller.js';
 import { authAdmin, authUser } from '../middlewares/auth.middleware.js';
@@ -22,8 +23,8 @@ userRouter.route('/login').post(userLogin);
 userRouter.route('/logout').post(authUser, userLogOut);
 
 userRouter.route('/current-user').get(authUser, userCurrent);
-userRouter.route('/update-user-profile').put(authUser, updateUserProfile);
-
+userRouter.route('/update-user-profile').patch(authUser, updateUserProfile);
+userRouter.route('/delete-user').delete(authUser, deleteUser);
 // Admin routes
 
 // userRouter.use(authAdmin);
